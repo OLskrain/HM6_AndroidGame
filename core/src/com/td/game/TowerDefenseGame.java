@@ -2,6 +2,8 @@ package com.td.game;
 
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input;
+import com.badlogic.gdx.InputAdapter;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.*;
@@ -10,7 +12,7 @@ import com.badlogic.gdx.math.MathUtils;
 public class TowerDefenseGame extends ApplicationAdapter {
     private SpriteBatch batch;
     private Map map;
-    private Turret turret;
+    private TurretEmitter turretEmitter;
     private MonsterEmitter monsterEmitter;
     private ParticleEmitter particleEmitter;
     private TextureAtlas atlas;
@@ -43,7 +45,7 @@ public class TowerDefenseGame extends ApplicationAdapter {
         batch = new SpriteBatch();
         atlas = new TextureAtlas(Gdx.files.internal("game.pack"));
         map = new Map(atlas);
-        turret = new Turret(atlas, this, map, 0, 0);
+        turretEmitter = new TurretEmitter(atlas, this, map,5);
         monsterEmitter = new MonsterEmitter(atlas, map, 60);
         particleEmitter = new ParticleEmitter(atlas.findRegion("star16"));
     }
@@ -56,7 +58,7 @@ public class TowerDefenseGame extends ApplicationAdapter {
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
         batch.begin();
         map.render(batch);
-        turret.render(batch);
+        turretEmitter.render(batch);
         monsterEmitter.render(batch);
         particleEmitter.render(batch);
         batch.end();
@@ -65,12 +67,23 @@ public class TowerDefenseGame extends ApplicationAdapter {
     public void update(float dt) {
         map.update(dt);
         monsterEmitter.update(dt);
-        turret.update(dt);
+        turretEmitter.update(dt);
         particleEmitter.update(dt);
-        if (Gdx.input.justTouched()) {
+/*код ниже. нашел эту реализацию в инете. помогло справиться с проблемой,которая возникала при использовании Gdx.input.isButtonPressed(Input.Buttons.LEFT)
+Проблема заключалась в том, что при нажатии кнопки мыши. несколько турелей ставилось сразу за 1 клик.
+*/
+        Gdx.input.setInputProcessor(new InputAdapter(){
+            public boolean touchDown(int x,int y,int pointer,int button){
+                int cx = (int) (Gdx.input.getX() / 80);
+                int cy = (int) ((720 - Gdx.input.getY()) / 80);
+                turretEmitter.createTurret(cx, cy);
+                return true; // возвращает true, сообщая, что событие было обработано
+            }
+        });
+        if(Gdx.input.isButtonPressed(Input.Buttons.RIGHT)){//убираем турель
             int cx = (int) (Gdx.input.getX() / 80);
             int cy = (int) ((720 - Gdx.input.getY()) / 80);
-            turret.setTurretToCell(cx, cy);
+            turretEmitter.destructionTurret(cx,cy);
         }
         particleEmitter.checkPool();
     }

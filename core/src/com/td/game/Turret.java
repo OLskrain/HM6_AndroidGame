@@ -7,11 +7,15 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class Turret {
     private TowerDefenseGame game;
     private Map map;
     private TextureRegion texture;
     private Vector2 position;
+    private boolean active;
     private float angle;
     private float range;
     private float fireDelay;
@@ -19,24 +23,48 @@ public class Turret {
     private float rotationSpeed;
     private Monster target;
 
+
     private Vector2 tmpVector;
+
+    public boolean isActive() {
+        return active;
+    }
+
+    public Vector2 getPosition() {
+        return position;
+    }
 
     public Turret(TextureAtlas atlas, TowerDefenseGame game, Map map, float cellX, float cellY) {
         this.texture = atlas.findRegion("turret");
         this.game = game;
         this.map = map;
-        this.range = 300;
+        this.range = 0;
         this.rotationSpeed = 270.0f;
         this.fireDelay = 0.1f;
         this.position = new Vector2(cellX * 80 + 40, cellY * 80 + 40);
         this.angle = 0;
         this.tmpVector = new Vector2(0, 0);
+        this.active = false;
+        }
+
+    public void activate(int cellX, int cellY){
+        if(setTurretToCell(cellX,cellY) ){
+            this.position.set(cellX * 80 + 40, cellY * 80 + 40);
+            this.range = 300;
+            this.active = true;
+        }
+    }
+    public  void deactivation(){
+        this.position.set(40, 40);
+        this.range = 0;
+        this.active = false;
     }
 
-    public void setTurretToCell(int cellX, int cellY) {
+    public boolean setTurretToCell(int cellX, int cellY) {
         if (map.isCellEmpty(cellX, cellY)) {
-            position.set(cellX * 80 + 40, cellY * 80 + 40);
+            return true;
         }
+        return false;
     }
 
     public void render(SpriteBatch batch) {
